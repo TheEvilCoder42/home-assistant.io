@@ -147,7 +147,7 @@ zone2:
 zone3:
   description: Specifies if zone 3 should be activated. Zones are displayed as additional media players with the same functionality as the Main Zone of the device supports. Some receivers do not support a second zone.
 update_audyssey:
-  description: Specifies if Audyssey settings should be updated. This can take up to 10 seconds for some receivers.
+  description: Specifies if the audio settings, such as the Audyssey ones, should be updated periodically while no Telnet connection is in use. This can take up to 10 seconds for some receivers.
 use_telnet:
   description: Specifies if a telnet connection should be used to receive device status updates. Using telnet provides realtime updates (local push) for many values but each receiver is limited to a single connection. If you enable this setting, no other connection to your device can be made via telnet. This will be set to true for new installations of the integration but false for existing installs to prevent compatibility issues.
 {% endconfiguration_basic %}
@@ -164,6 +164,9 @@ A few notes:
 
 The `denonavr` integration creates the following [Number](/integrations/number/) entities on the receiver's device, as configuration entities.
 
+- **Audio delay**
+  - **Description**: Delays the sound to keep it in sync with a picture that lags behind it. The receiver stores a separate delay for each input source, so the value changes with the source. Without Telnet, it shows unknown after a source change until the new source's delay has been read.
+  - **Range**: 0 ms to 500 ms, in 1 ms steps
 - **Tone control bass**
   - **Description**: Boosts or cuts the bass, in the dB the receiver shows. Shows unknown until the receiver first reports a value.
   - **Range**: -6 dB to +6 dB, in 1 dB steps
@@ -190,7 +193,7 @@ The `denonavr` integration creates the following [Select](/integrations/select/)
   - **Options**: 0 dB, +5 dB, +10 dB, +15 dB
   - **Availability**: Unavailable when the receiver has no Audyssey, when the **Audyssey Dynamic EQ** switch is off, and in the Direct and Pure Direct sound modes.
 - **Auto standby**
-  - **Description**: How long the receiver stays idle before it switches itself to standby. Unlike the other settings, it can be changed while any zone is on.
+  - **Description**: How long the receiver stays idle before it switches itself to standby. Unlike most other settings, it can be changed while any zone is on.
   - **Options**: Off, 15 minutes, 30 minutes, 60 minutes, 2 hours, 4 hours, 8 hours
 - **Display dimmer**
   - **Description**: Front-panel display brightness.
@@ -206,6 +209,9 @@ The `denonavr` integration creates the following [Switch](/integrations/switch/)
 - **Audyssey Dynamic EQ**
   - **Description**: Adjusts the frequency response to compensate for listening at low volume. This is the same setting as the `denonavr.set_dynamic_eq` action.
   - **Availability**: Unavailable when the receiver has no Audyssey, when Audyssey MultEQ is off, and in the Direct and Pure Direct sound modes. The receiver ignores Dynamic EQ changes in all of these. While Dynamic EQ is off, the **Audyssey reference level offset** select is unavailable; while it is on, the tone control entities are.
+- **Auto lip sync**
+  - **Description**: Corrects the timing between sound and picture automatically. Available on Denon as well as Marantz receivers. Unlike most other settings, it can be changed while any zone is on.
+  - **Availability**: Unavailable until the receiver reports the setting.
 - **Tone control**
   - **Description**: Turns the receiver's tone control on or off. Setting **Tone control bass** or **Tone control treble** turns it on.
   - **Availability**: Unavailable when the receiver does not support tone control, while the **Audyssey Dynamic EQ** switch is on, in the Direct and Pure Direct sound modes, and until the receiver first reports it. The receiver ignores bass, treble and tone control changes while Dynamic EQ is on and in Direct and Pure Direct.
@@ -213,7 +219,7 @@ The `denonavr` integration creates the following [Switch](/integrations/switch/)
 A setting can only be changed while the zone it applies to is on. While that zone is off, the change is refused with an error, because the receiver accepts it in standby without applying it. The `denonavr.set_dynamic_eq` action is refused the same way while the main zone is off, even when it targets another zone's media player.
 
 {% note %}
-With **Use Telnet connection** enabled, a change made on the receiver itself or in its app shows up in Home Assistant right away for every entity above. Without Telnet, **Auto standby**, **Display dimmer**, **Eco mode** and the tone control entities follow on the next regular update, while the Audyssey selects and **Audyssey Dynamic EQ** are only picked up when **Update Audyssey settings** is enabled, which reads the Audyssey settings on every update. Some receivers take up to 10 seconds to answer that request, which is why the option is off by default.
+With **Use Telnet connection** enabled, a change made on the receiver itself or in its app shows up in Home Assistant right away for every entity above. Without Telnet, **Auto standby**, **Display dimmer**, **Eco mode** and the tone control entities follow on the next regular update, while the Audyssey selects, **Audyssey Dynamic EQ**, **Audio delay** and **Auto lip sync** are only picked up when **Update audio settings periodically** is enabled, which reads the audio settings on every update. Some receivers take up to 10 seconds to answer that request, which is why the option is off by default. With the option off, the **Update audio settings** action (`denonavr.update_audyssey`) reads them once on demand. Either way, these settings are read again a few seconds after Home Assistant sees the input source change, because the receiver stores some of them per source.
 {% endnote %}
 
 {% include integrations/actions.md %}
