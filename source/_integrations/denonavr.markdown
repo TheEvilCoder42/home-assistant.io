@@ -143,9 +143,9 @@ host:
 show_all_sources:
   description: If True all sources are displayed in sources list even if they are marked as deleted in the receiver. If False deleted sources are not displayed. Some receivers have a bug that marks all sources as deleted in the interface. In this case, this option could help.
 zone2:
-  description: Specifies if zone 2 should be activated. Zones are displayed as additional media players with the same functionality as the Main Zone of the device supports.
+  description: Specifies if zone 2 should be activated. Zones are displayed as additional media players with the same functionality as the Main Zone of the device supports, each with its own volume and volume limit entities. Deactivating a zone removes all of its entities, not only its media player.
 zone3:
-  description: Specifies if zone 3 should be activated. Zones are displayed as additional media players with the same functionality as the Main Zone of the device supports. Some receivers do not support a second zone.
+  description: Specifies if zone 3 should be activated. Zones are displayed as additional media players with the same functionality as the Main Zone of the device supports, each with its own volume and volume limit entities. Deactivating a zone removes all of its entities, not only its media player. Some receivers do not support a second zone.
 update_audyssey:
   description: Specifies if the audio settings, such as the Audyssey ones, should be updated periodically while no Telnet connection is in use. This can take up to 10 seconds for some receivers.
 use_telnet:
@@ -162,7 +162,7 @@ A few notes:
 
 ## Number
 
-The `denonavr` integration creates the following [Number](/integrations/number/) entities on the receiver's device, as configuration entities.
+The `denonavr` integration creates the following [Number](/integrations/number/) entities on the receiver's device. All of them except **Volume** are configuration entities.
 
 - **Audio delay**
   - **Description**: Delays the sound to keep it in sync with a picture that lags behind it. The receiver stores a separate delay for each input source, so the value changes with the source. Without Telnet, it shows unknown after a source change until the new source's delay has been read.
@@ -179,6 +179,9 @@ The `denonavr` integration creates the following [Number](/integrations/number/)
   - **Description**: Boosts or cuts the treble, in the dB the receiver shows. Shows unknown until the receiver first reports a value.
   - **Range**: -6 dB to +6 dB, in 1 dB steps
   - **Availability**: The same as the **Tone control** switch, except that before the receiver first reports a value it shows unknown instead.
+- **Volume**
+  - **Description**: One per configured zone: **Volume** for the main zone, **Zone 2 volume** and **Zone 3 volume** for the others. The zone's volume in the receiver's own decibel scale, rather than the media player's percentage. It duplicates the media player's volume, so it is disabled by default.
+  - **Range**: -80 dB up to the zone's **Volume limit**, or up to +18 dB while the limit is off or not yet reported. In 0.5 dB steps on the main zone, and in 1 dB steps on Zone 2 and Zone 3.
 
 ## Select
 
@@ -209,6 +212,9 @@ The `denonavr` integration creates the following [Select](/integrations/select/)
   - **Description**: Which of the receiver's stored speaker setups, each with its own speaker levels, distances and crossovers, is in use.
   - **Options**: The preset numbers the receiver reports, such as 1 and 2 on the AVR-X1700H.
   - **Availability**: Unavailable until the receiver reports the setting.
+- **Volume limit**
+  - **Description**: One per configured zone: **Volume limit** for the main zone, **Zone 2 volume limit** and **Zone 3 volume limit** for the others. The highest volume the zone can be set to. The media player's volume slider and the **Volume** entity stop at it rather than at the receiver's maximum; the receiver never went above the limit anyway, so the resulting volume is the same. Shows unknown until the receiver first reports a limit, which some receivers only do over Telnet when the limit changes. Unlike most other settings, it can be changed while any zone is on.
+  - **Options**: Off, -20 dB to 0 dB in 1 dB steps on the main zone. Off, -20 dB, -10 dB and 0 dB on Zone 2 and Zone 3.
 
 ## Switch
 
@@ -230,7 +236,7 @@ The `denonavr` integration creates the following [Switch](/integrations/switch/)
 A setting can only be changed while the zone it applies to is on. While that zone is off, the change is refused with an error, because the receiver accepts it in standby without applying it. The `denonavr.set_dynamic_eq` action is refused the same way while the main zone is off, even when it targets another zone's media player.
 
 {% note %}
-With **Use Telnet connection** enabled, a change made on the receiver itself or in its app shows up in Home Assistant right away for every entity above. Without Telnet, **Auto standby**, **Display dimmer**, **Eco mode** and the tone control entities follow on the next regular update, while the Audyssey selects, **Audyssey Dynamic EQ**, **Audio delay**, **Auto lip sync**, **LFE attenuation**, **Speaker preset** and **Subwoofer output** are only picked up when **Update audio settings periodically** is enabled, which reads the audio settings on every update. Some receivers take up to 10 seconds to answer that request, which is why the option is off by default. With the option off, the **Update audio settings** action (`denonavr.update_audyssey`) reads them once on demand. Either way, these settings are read again a few seconds after Home Assistant sees the input source or the sound mode change, because the receiver stores some of them per source and allows **LFE attenuation** and **Subwoofer output** only for some streams and sound modes. A stream change that changes neither, such as a 5.1 film starting in the Stereo sound mode, is not noticed, so **LFE attenuation** and **Subwoofer output** can show the wrong availability until the audio settings are next read.
+With **Use Telnet connection** enabled, a change made on the receiver itself or in its app shows up in Home Assistant right away for every entity above. Without Telnet, **Auto standby**, **Display dimmer**, **Eco mode**, the tone control entities, the volume entities and the volume limit on receivers that report it follow on the next regular update, while the Audyssey selects, **Audyssey Dynamic EQ**, **Audio delay**, **Auto lip sync**, **LFE attenuation**, **Speaker preset** and **Subwoofer output** are only picked up when **Update audio settings periodically** is enabled, which reads the audio settings on every update. Some receivers take up to 10 seconds to answer that request, which is why the option is off by default. With the option off, the **Update audio settings** action (`denonavr.update_audyssey`) reads them once on demand. Either way, these settings are read again a few seconds after Home Assistant sees the input source or the sound mode change, because the receiver stores some of them per source and allows **LFE attenuation** and **Subwoofer output** only for some streams and sound modes. A stream change that changes neither, such as a 5.1 film starting in the Stereo sound mode, is not noticed, so **LFE attenuation** and **Subwoofer output** can show the wrong availability until the audio settings are next read.
 {% endnote %}
 
 {% include integrations/actions.md %}
