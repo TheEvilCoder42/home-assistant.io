@@ -13,6 +13,7 @@ ha_config_flow: true
 ha_ssdp: true
 ha_platforms:
   - media_player
+  - switch
 ha_integration_type: device
 ---
 
@@ -156,6 +157,20 @@ A few notes:
 - Marantz receivers seem to a have quite a similar interface. Thus if you own one, give it a try.
 - To remotely power on Marantz receivers with Home Assistant, the Auto-Standby feature must be enabled in the receiver's settings.
 - Sound mode: The command to set a specific sound mode is different from the value of the current sound mode reported by the receiver (sound_mode_raw). There is a key-value structure (sound_mode_dict) that matches the raw sound mode to one of the possible commands to set a sound mode (for instance {'MUSIC':['PLII MUSIC']}. If you get a "Not able to match sound mode" warning, please open an issue on the [denonavr library](https://github.com/ol-iver/denonavr), stating which raw sound mode could not be matched so it can be added to the matching dictionary. You can find the current raw sound mode under {% my developer_states title="**Settings** > **Tools** > **States**" %}.
+
+## Switch
+
+The `denonavr` integration creates the following [Switch](/integrations/switch/) entity on the receiver's device, as a configuration entity.
+
+- **Audyssey Dynamic EQ**
+  - **Description**: Adjusts the frequency response to compensate for listening at low volume. This is the same setting as the `denonavr.set_dynamic_eq` action.
+  - **Availability**: Unavailable when the receiver has no Audyssey, when Audyssey MultEQ is off, and in the Direct and Pure Direct sound modes. The receiver ignores Dynamic EQ changes in all of these.
+
+A setting can only be changed while the zone it applies to is on. While that zone is off, the change is refused with an error, because the receiver accepts it in standby without applying it. The `denonavr.set_dynamic_eq` action is refused the same way while the main zone is off, even when it targets another zone's media player.
+
+{% note %}
+With **Use Telnet connection** enabled, a change to **Audyssey Dynamic EQ** made on the receiver itself or in its app shows up in Home Assistant right away. Without Telnet, it is only picked up when **Update Audyssey settings** is enabled, which reads the Audyssey settings on every update. Some receivers take up to 10 seconds to answer that request, which is why the option is off by default.
+{% endnote %}
 
 {% include integrations/actions.md %}
 
