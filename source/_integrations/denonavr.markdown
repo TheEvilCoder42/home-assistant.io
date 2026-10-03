@@ -13,6 +13,7 @@ ha_config_flow: true
 ha_ssdp: true
 ha_platforms:
   - media_player
+  - number
   - select
   - switch
 ha_integration_type: device
@@ -159,6 +160,19 @@ A few notes:
 - To remotely power on Marantz receivers with Home Assistant, the Auto-Standby feature must be enabled in the receiver's settings.
 - Sound mode: The command to set a specific sound mode is different from the value of the current sound mode reported by the receiver (sound_mode_raw). There is a key-value structure (sound_mode_dict) that matches the raw sound mode to one of the possible commands to set a sound mode (for instance {'MUSIC':['PLII MUSIC']}. If you get a "Not able to match sound mode" warning, please open an issue on the [denonavr library](https://github.com/ol-iver/denonavr), stating which raw sound mode could not be matched so it can be added to the matching dictionary. You can find the current raw sound mode under {% my developer_states title="**Settings** > **Tools** > **States**" %}.
 
+## Number
+
+The `denonavr` integration creates the following [Number](/integrations/number/) entities on the receiver's device, as configuration entities.
+
+- **Tone control bass**
+  - **Description**: Boosts or cuts the bass, in the dB the receiver shows. Shows unknown until the receiver first reports a value.
+  - **Range**: -6 dB to +6 dB, in 1 dB steps
+  - **Availability**: The same as the **Tone control** switch, except that before the receiver first reports a value it shows unknown instead.
+- **Tone control treble**
+  - **Description**: Boosts or cuts the treble, in the dB the receiver shows. Shows unknown until the receiver first reports a value.
+  - **Range**: -6 dB to +6 dB, in 1 dB steps
+  - **Availability**: The same as the **Tone control** switch, except that before the receiver first reports a value it shows unknown instead.
+
 ## Select
 
 The `denonavr` integration creates the following [Select](/integrations/select/) entities on the receiver's device, as configuration entities.
@@ -187,16 +201,19 @@ The `denonavr` integration creates the following [Select](/integrations/select/)
 
 ## Switch
 
-The `denonavr` integration creates the following [Switch](/integrations/switch/) entity on the receiver's device, as a configuration entity.
+The `denonavr` integration creates the following [Switch](/integrations/switch/) entities on the receiver's device, as configuration entities.
 
 - **Audyssey Dynamic EQ**
   - **Description**: Adjusts the frequency response to compensate for listening at low volume. This is the same setting as the `denonavr.set_dynamic_eq` action.
-  - **Availability**: Unavailable when the receiver has no Audyssey, when Audyssey MultEQ is off, and in the Direct and Pure Direct sound modes. The receiver ignores Dynamic EQ changes in all of these. While Dynamic EQ is off, the **Audyssey reference level offset** select is unavailable.
+  - **Availability**: Unavailable when the receiver has no Audyssey, when Audyssey MultEQ is off, and in the Direct and Pure Direct sound modes. The receiver ignores Dynamic EQ changes in all of these. While Dynamic EQ is off, the **Audyssey reference level offset** select is unavailable; while it is on, the tone control entities are.
+- **Tone control**
+  - **Description**: Turns the receiver's tone control on or off. Setting **Tone control bass** or **Tone control treble** turns it on.
+  - **Availability**: Unavailable when the receiver does not support tone control, while the **Audyssey Dynamic EQ** switch is on, in the Direct and Pure Direct sound modes, and until the receiver first reports it. The receiver ignores bass, treble and tone control changes while Dynamic EQ is on and in Direct and Pure Direct.
 
 A setting can only be changed while the zone it applies to is on. While that zone is off, the change is refused with an error, because the receiver accepts it in standby without applying it. The `denonavr.set_dynamic_eq` action is refused the same way while the main zone is off, even when it targets another zone's media player.
 
 {% note %}
-With **Use Telnet connection** enabled, a change made on the receiver itself or in its app shows up in Home Assistant right away for every select and switch above. Without Telnet, **Auto standby**, **Display dimmer** and **Eco mode** follow on the next regular update, while the Audyssey selects and **Audyssey Dynamic EQ** are only picked up when **Update Audyssey settings** is enabled, which reads the Audyssey settings on every update. Some receivers take up to 10 seconds to answer that request, which is why the option is off by default.
+With **Use Telnet connection** enabled, a change made on the receiver itself or in its app shows up in Home Assistant right away for every entity above. Without Telnet, **Auto standby**, **Display dimmer**, **Eco mode** and the tone control entities follow on the next regular update, while the Audyssey selects and **Audyssey Dynamic EQ** are only picked up when **Update Audyssey settings** is enabled, which reads the Audyssey settings on every update. Some receivers take up to 10 seconds to answer that request, which is why the option is off by default.
 {% endnote %}
 
 {% include integrations/actions.md %}
