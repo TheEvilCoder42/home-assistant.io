@@ -205,6 +205,10 @@ The `denonavr` integration creates the following [Select](/integrations/select/)
 - **Eco mode**
   - **Description**: The receiver's power-saving mode.
   - **Options**: On, Auto, Off
+- **Speaker preset**
+  - **Description**: Which of the receiver's stored speaker setups, each with its own speaker levels, distances and crossovers, is in use.
+  - **Options**: The preset numbers the receiver reports, such as 1 and 2 on the AVR-X1700H.
+  - **Availability**: Unavailable until the receiver reports the setting.
 
 ## Switch
 
@@ -226,7 +230,7 @@ The `denonavr` integration creates the following [Switch](/integrations/switch/)
 A setting can only be changed while the zone it applies to is on. While that zone is off, the change is refused with an error, because the receiver accepts it in standby without applying it. The `denonavr.set_dynamic_eq` action is refused the same way while the main zone is off, even when it targets another zone's media player.
 
 {% note %}
-With **Use Telnet connection** enabled, a change made on the receiver itself or in its app shows up in Home Assistant right away for every entity above. Without Telnet, **Auto standby**, **Display dimmer**, **Eco mode** and the tone control entities follow on the next regular update, while the Audyssey selects, **Audyssey Dynamic EQ**, **Audio delay**, **Auto lip sync**, **LFE attenuation** and **Subwoofer output** are only picked up when **Update audio settings periodically** is enabled, which reads the audio settings on every update. Some receivers take up to 10 seconds to answer that request, which is why the option is off by default. With the option off, the **Update audio settings** action (`denonavr.update_audyssey`) reads them once on demand. Either way, these settings are read again a few seconds after Home Assistant sees the input source or the sound mode change, because the receiver stores some of them per source and allows **LFE attenuation** and **Subwoofer output** only for some streams and sound modes. A stream change that changes neither, such as a 5.1 film starting in the Stereo sound mode, is not noticed, so **LFE attenuation** and **Subwoofer output** can show the wrong availability until the audio settings are next read.
+With **Use Telnet connection** enabled, a change made on the receiver itself or in its app shows up in Home Assistant right away for every entity above. Without Telnet, **Auto standby**, **Display dimmer**, **Eco mode** and the tone control entities follow on the next regular update, while the Audyssey selects, **Audyssey Dynamic EQ**, **Audio delay**, **Auto lip sync**, **LFE attenuation**, **Speaker preset** and **Subwoofer output** are only picked up when **Update audio settings periodically** is enabled, which reads the audio settings on every update. Some receivers take up to 10 seconds to answer that request, which is why the option is off by default. With the option off, the **Update audio settings** action (`denonavr.update_audyssey`) reads them once on demand. Either way, these settings are read again a few seconds after Home Assistant sees the input source or the sound mode change, because the receiver stores some of them per source and allows **LFE attenuation** and **Subwoofer output** only for some streams and sound modes. A stream change that changes neither, such as a 5.1 film starting in the Stereo sound mode, is not noticed, so **LFE attenuation** and **Subwoofer output** can show the wrong availability until the audio settings are next read.
 {% endnote %}
 
 {% include integrations/actions.md %}
