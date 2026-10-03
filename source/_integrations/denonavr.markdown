@@ -13,6 +13,7 @@ ha_config_flow: true
 ha_ssdp: true
 ha_platforms:
   - media_player
+  - select
   - switch
 ha_integration_type: device
 ---
@@ -158,18 +159,44 @@ A few notes:
 - To remotely power on Marantz receivers with Home Assistant, the Auto-Standby feature must be enabled in the receiver's settings.
 - Sound mode: The command to set a specific sound mode is different from the value of the current sound mode reported by the receiver (sound_mode_raw). There is a key-value structure (sound_mode_dict) that matches the raw sound mode to one of the possible commands to set a sound mode (for instance {'MUSIC':['PLII MUSIC']}. If you get a "Not able to match sound mode" warning, please open an issue on the [denonavr library](https://github.com/ol-iver/denonavr), stating which raw sound mode could not be matched so it can be added to the matching dictionary. You can find the current raw sound mode under {% my developer_states title="**Settings** > **Tools** > **States**" %}.
 
+## Select
+
+The `denonavr` integration creates the following [Select](/integrations/select/) entities on the receiver's device, as configuration entities.
+
+- **Audyssey Dynamic Volume**
+  - **Description**: Evens out very quiet and very loud passages, so the volume stays consistent across different content. Heavy adjusts the most, Light the least.
+  - **Options**: Off, Light, Medium, Heavy
+  - **Availability**: Unavailable when the receiver has no Audyssey, when **Audyssey MultEQ** is off, and in the Direct and Pure Direct sound modes.
+- **Audyssey MultEQ**
+  - **Description**: The room correction curve Audyssey applies.
+  - **Options**: Off, Flat, L/R bypass, Reference, Manual. Manual can only be selected with **Use Telnet connection** enabled.
+  - **Availability**: Unavailable when the receiver has no Audyssey, and in the Direct and Pure Direct sound modes.
+- **Audyssey reference level offset**
+  - **Description**: Adjusts Audyssey Dynamic EQ for content that is not mixed to the film reference level. Denon recommends 0 dB for movies, +5 dB for classical music, +10 dB for jazz and TV, and +15 dB for pop and rock.
+  - **Options**: 0 dB, +5 dB, +10 dB, +15 dB
+  - **Availability**: Unavailable when the receiver has no Audyssey, when the **Audyssey Dynamic EQ** switch is off, and in the Direct and Pure Direct sound modes.
+- **Auto standby**
+  - **Description**: How long the receiver stays idle before it switches itself to standby. Unlike the other settings, it can be changed while any zone is on.
+  - **Options**: Off, 15 minutes, 30 minutes, 60 minutes, 2 hours, 4 hours, 8 hours
+- **Display dimmer**
+  - **Description**: Front-panel display brightness.
+  - **Options**: Off, Dark, Dim, Bright
+- **Eco mode**
+  - **Description**: The receiver's power-saving mode.
+  - **Options**: On, Auto, Off
+
 ## Switch
 
 The `denonavr` integration creates the following [Switch](/integrations/switch/) entity on the receiver's device, as a configuration entity.
 
 - **Audyssey Dynamic EQ**
   - **Description**: Adjusts the frequency response to compensate for listening at low volume. This is the same setting as the `denonavr.set_dynamic_eq` action.
-  - **Availability**: Unavailable when the receiver has no Audyssey, when Audyssey MultEQ is off, and in the Direct and Pure Direct sound modes. The receiver ignores Dynamic EQ changes in all of these.
+  - **Availability**: Unavailable when the receiver has no Audyssey, when Audyssey MultEQ is off, and in the Direct and Pure Direct sound modes. The receiver ignores Dynamic EQ changes in all of these. While Dynamic EQ is off, the **Audyssey reference level offset** select is unavailable.
 
 A setting can only be changed while the zone it applies to is on. While that zone is off, the change is refused with an error, because the receiver accepts it in standby without applying it. The `denonavr.set_dynamic_eq` action is refused the same way while the main zone is off, even when it targets another zone's media player.
 
 {% note %}
-With **Use Telnet connection** enabled, a change to **Audyssey Dynamic EQ** made on the receiver itself or in its app shows up in Home Assistant right away. Without Telnet, it is only picked up when **Update Audyssey settings** is enabled, which reads the Audyssey settings on every update. Some receivers take up to 10 seconds to answer that request, which is why the option is off by default.
+With **Use Telnet connection** enabled, a change made on the receiver itself or in its app shows up in Home Assistant right away for every select and switch above. Without Telnet, **Auto standby**, **Display dimmer** and **Eco mode** follow on the next regular update, while the Audyssey selects and **Audyssey Dynamic EQ** are only picked up when **Update Audyssey settings** is enabled, which reads the Audyssey settings on every update. Some receivers take up to 10 seconds to answer that request, which is why the option is off by default.
 {% endnote %}
 
 {% include integrations/actions.md %}
